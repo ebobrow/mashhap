@@ -5,23 +5,18 @@
 #include "common.h"
 #include "table.h"
 #include "value.h"
-#include "vm.h"
+#include "bencher.h"
 
 int main() {
-    initVM();
-
-    Table table;
-    initTable(&table);
+    initBencher();
 
     // benches (TODO)
-    char* key = "bye";
-    tableSet(&table, copyString(key, 3), 1);
-    int ret;
-    tableGet(&table, copyString(key, 3), &ret);
-    printf("%d\n", ret);
+    /* tableSet(&table, copyString("bye", 3), 2); */
+    /* int ret; */
+    /* tableGet(&table, copyString("bye", 3), &ret); */
+    /* printf("%d\n", ret); */
+    runBench();
 
-    freeTable(&table);
-
-    freeVM();
+    freeBencher();
     return 0;
 }

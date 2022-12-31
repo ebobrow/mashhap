@@ -3,15 +3,15 @@
 #include "memory.h"
 #include "table.h"
 #include "value.h"
-#include "vm.h"
+#include "bencher.h"
 
 static String* allocateString(char* chars, int length,
-                                 uint32_t hash) {
+                              uint32_t hash) {
     String* string = (String*)reallocate(NULL, 0, sizeof(String));
     string->length = length;
     string->chars = chars;
     string->hash = hash;
-    tableSet(&vm.strings, string, 0);
+    tableSet(&bencher.strings, string, 0);
     return string;
 }
 
@@ -26,8 +26,8 @@ static uint32_t hashString(const char* key, int length) {
 
 String* takeString(char* chars, int length) {
     uint32_t hash = hashString(chars, length);
-    String* interned = tableFindString(&vm.strings, chars, length,
-                                          hash);
+    String* interned = tableFindString(&bencher.strings, chars, length,
+                                       hash);
     if (interned != NULL) {
         FREE_ARRAY(char, chars, length + 1);
         return interned;
@@ -38,8 +38,8 @@ String* takeString(char* chars, int length) {
 
 String* copyString(const char* chars, int length) {
     uint32_t hash = hashString(chars, length);
-    String* interned = tableFindString(&vm.strings, chars, length,
-                                          hash);
+    String* interned = tableFindString(&bencher.strings, chars, length,
+                                       hash);
     if (interned != NULL) return interned;
 
     char* heapChars = ALLOCATE(char, length + 1);
