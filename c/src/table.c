@@ -81,7 +81,6 @@ bool tableSet(Table* table, String* key, int value) {
     Entry* entry = findEntry(table->entries, table->capacity, key);
     bool isNewKey = entry->key == NULL;
     if (isNewKey && entry->value == 0) table->count++;
-    if (isNewKey) table->count++;
 
     entry->key = key;
     entry->value = value;

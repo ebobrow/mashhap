@@ -1,3 +1,5 @@
 *.o
 *.gch
 *.out
+
+/rust/target

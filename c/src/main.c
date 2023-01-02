@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common.h"
 #include "table.h"
 #include "value.h"
 #include "bencher.h"
