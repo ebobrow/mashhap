@@ -11,3 +11,6 @@ criterion = "0.4"
 [[bench]]
 name = "aaa"
 harness = false
+
+[dependencies]
+seahash = "4.1.0"

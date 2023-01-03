@@ -192,7 +192,11 @@ impl<T> Drop for MashHap<T> {
     }
 }
 
-/// FNV-1a
+// // SeaHash
+// fn hash(src: &str) -> u64 {
+//     seahash::hash(src.as_bytes())
+// }
+// FNV-1a
 fn hash(src: &str) -> u32 {
     src.chars().fold(2166136261, |acc, c| {
         (acc ^ (c as u32)).wrapping_mul(16777619)
