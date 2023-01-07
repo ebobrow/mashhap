@@ -134,7 +134,6 @@ impl<T> MashHap<T> {
     }
 
     fn resize(&mut self) {
-        self.count = 0;
         let (new_cap, new_layout) = if self.capacity == 0 {
             (1, Layout::array::<Entry<T>>(1).unwrap())
         } else {
@@ -143,15 +142,20 @@ impl<T> MashHap<T> {
             (new_cap, new_layout)
         };
 
-        // TODO: Memory leak?
-        let new_ptr = unsafe { alloc::alloc(new_layout) };
-        // let new_ptr = if self.capacity == 0 {
-        //     unsafe { alloc::alloc(new_layout) }
-        // } else {
-        //     let old_layout = Layout::array::<Entry<T>>(self.capacity).unwrap();
-        //     let old_ptr = self.entries.as_ptr() as *mut u8;
-        //     unsafe { alloc::realloc(old_ptr, old_layout, new_layout.size()) }
-        // };
+        let mut items_to_transfer = Vec::new();
+        for i in 0..self.capacity {
+            if let Entry::Some((k, v)) = self.read(i).unwrap() {
+                items_to_transfer.push((k, v));
+            }
+        }
+
+        let new_ptr = if self.capacity == 0 {
+            unsafe { alloc::alloc(new_layout) }
+        } else {
+            let old_layout = Layout::array::<Entry<T>>(self.capacity).unwrap();
+            let old_ptr = self.entries.as_ptr() as *mut u8;
+            unsafe { alloc::realloc(old_ptr, old_layout, new_layout.size()) }
+        };
 
         let new_entries = match NonNull::new(new_ptr as *mut Entry<T>) {
             Some(p) => p,
@@ -162,13 +166,10 @@ impl<T> MashHap<T> {
             unsafe { ptr::write(new_entries.as_ptr().add(i), Entry::Null) };
         }
 
-        for i in 0..self.capacity {
-            let entry = self.read(i).unwrap();
-            if let Entry::Some((k, v)) = entry {
-                let (i, _) = self.find_entry(&k);
-                unsafe { ptr::write(new_entries.as_ptr().add(i), Entry::Some((k, v))) };
-                self.count += 1;
-            }
+        self.count = items_to_transfer.len();
+        for (k, v) in items_to_transfer {
+            let (i, _) = self.find_entry(&k);
+            unsafe { ptr::write(new_entries.as_ptr().add(i), Entry::Some((k, v))) };
         }
 
         self.entries = new_entries;

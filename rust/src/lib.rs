@@ -2,4 +2,4 @@
 mod hec;
 mod mashhap;
 
-pub use mashhap::MashHap;
+pub use crate::mashhap::MashHap;
