@@ -6,6 +6,15 @@ point.
 
 ## Rust benches
 
+| | SeaHash | FNV-1a |
+|-|---------|--------|
+|set 10000 'a's| 326.48 µs |905.25 µs|
+|set random words|716.56 µs|632.29 µs|
+|get random words|417.99 µs|357.47 µs|
+|delete random words|320.70 µs|261.48 µs|
+|all three|1.1819 ms|957.73 µs|
+
+
 ### FNV-1a
 ```
 Benchmarking insert 10000 'a's: Warming up for 3.0000 s
