@@ -1,4 +1,5 @@
 #![allow(unused)]
+pub mod hash;
 mod hec;
 mod mashhap;
 

@@ -4,13 +4,15 @@ use std::{
 };
 
 // TODO: tweak
-const MAX_LOAD: f64 = 0.75;
+const MAX_LOAD: f64 = 0.65;
+
+type HashFn = fn(&str) -> u32;
 
 pub struct MashHap<T> {
-    // TODO: also try without `Vec`, using slice with `count` and `capacity`
     entries: NonNull<Entry<T>>,
     count: usize,
     capacity: usize,
+    hash: HashFn,
 }
 
 #[derive(Debug)]
@@ -21,15 +23,16 @@ enum Entry<T> {
 }
 
 impl<T> MashHap<T> {
-    pub fn new() -> Self {
+    pub fn new(hash: HashFn) -> Self {
         Self {
             entries: NonNull::dangling(),
             count: 0,
             capacity: 0,
+            hash,
         }
     }
 
-    pub fn with_capacity(capacity: usize) -> Self {
+    pub fn with_capacity(capacity: usize, hash: HashFn) -> Self {
         let layout = Layout::array::<Entry<T>>(capacity).unwrap();
         let ptr = unsafe { alloc::alloc(layout) };
         let entries = match NonNull::new(ptr as *mut Entry<T>) {
@@ -45,6 +48,7 @@ impl<T> MashHap<T> {
             entries,
             count: 0,
             capacity,
+            hash,
         }
     }
 
@@ -116,7 +120,7 @@ impl<T> MashHap<T> {
     }
 
     fn find_entry(&self, key: &str) -> (usize, &Entry<T>) {
-        let index = hash(key) as usize % self.capacity;
+        let index = (self.hash)(key) as usize % self.capacity;
         for i in 0..self.capacity {
             let new_index = (index + i) % self.capacity;
             let entry = &self.slice()[new_index];
@@ -193,24 +197,15 @@ impl<T> Drop for MashHap<T> {
     }
 }
 
-// // SeaHash
-// fn hash(src: &str) -> u64 {
-//     seahash::hash(src.as_bytes())
-// }
-// FNV-1a
-fn hash(src: &str) -> u32 {
-    src.chars().fold(2166136261, |acc, c| {
-        (acc ^ (c as u32)).wrapping_mul(16777619)
-    })
-}
-
 #[cfg(test)]
 mod tests {
+    use crate::hash::fnv_1a;
+
     use super::*;
 
     #[test]
     fn basics() {
-        let mut map = MashHap::new();
+        let mut map = MashHap::new(fnv_1a);
         assert_eq!(map.get("nonexistant"), None);
         assert_eq!(map.set("A", 10), true);
         assert_eq!(map.set("B", 24), true);
@@ -224,7 +219,7 @@ mod tests {
 
     #[test]
     fn resizing() {
-        let mut map = MashHap::new();
+        let mut map = MashHap::new(fnv_1a);
         assert_eq!(map.capacity, 0);
         map.set("A", 1);
         assert_eq!(map.capacity, 1);
