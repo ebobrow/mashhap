@@ -1,6 +1,8 @@
 use std::{
     alloc::{self, Layout},
+    cell::RefCell,
     ptr::{self, NonNull},
+    rc::Rc,
 };
 
 use crate::hash::HashFn;
@@ -13,6 +15,10 @@ pub struct MashHap<T> {
     count: usize,
     capacity: usize,
     hash: HashFn,
+
+    // TODO: best way to store this?
+    /// Number of times we had to move past an occupied space
+    overlaps: Rc<RefCell<usize>>,
 }
 
 #[derive(Debug)]
@@ -29,6 +35,7 @@ impl<T> MashHap<T> {
             count: 0,
             capacity: 0,
             hash,
+            overlaps: Default::default(),
         }
     }
 
@@ -49,6 +56,7 @@ impl<T> MashHap<T> {
             count: 0,
             capacity,
             hash,
+            overlaps: Default::default(),
         }
     }
 
@@ -97,6 +105,10 @@ impl<T> MashHap<T> {
         }
     }
 
+    pub fn overlaps(&self) -> usize {
+        self.overlaps.borrow().clone()
+    }
+
     fn read(&self, n: usize) -> Option<Entry<T>> {
         if self.capacity == 0 || n >= self.capacity {
             None
@@ -133,8 +145,14 @@ impl<T> MashHap<T> {
                 }
                 _ => return (new_index, entry),
             }
+            self.inc_overlaps();
         }
         unreachable!()
+    }
+
+    fn inc_overlaps(&self) {
+        let mut overlaps = self.overlaps.borrow_mut();
+        *overlaps += 1;
     }
 
     fn resize(&mut self) {

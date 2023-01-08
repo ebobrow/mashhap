@@ -12,5 +12,9 @@ criterion = "0.4"
 name = "aaa"
 harness = false
 
+[[bench]]
+name = "overlaps"
+harness = false
+
 [dependencies]
 seahash = "4.1.0"

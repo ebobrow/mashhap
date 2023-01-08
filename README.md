@@ -6,6 +6,18 @@ point.
 
 ## Rust benches
 
+### Overlaps
+I don't know what to call these, but the number of times the insertion
+algorithm has to move to the next slot in the array. Or, if I try chaining
+instead of open addressing, the number of duplicates in each bin.
+
+Average overlaps per item
+
+|SeaHash|FNV-1a|MurmurHash|
+|10.412|11.788|6.2648|
+
+### Timing
+
 | | SeaHash | FNV-1a |
 |-|---------|--------|
 |set 10000 'a's| 326.48 µs |905.25 µs|
