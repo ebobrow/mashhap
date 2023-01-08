@@ -1,3 +1,5 @@
+pub type HashFn = fn(&str) -> u32;
+
 pub fn seahash(src: &str) -> u32 {
     seahash::hash(src.as_bytes()) as u32
 }

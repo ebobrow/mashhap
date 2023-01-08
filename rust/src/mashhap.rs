@@ -3,10 +3,10 @@ use std::{
     ptr::{self, NonNull},
 };
 
+use crate::hash::HashFn;
+
 // TODO: tweak
 const MAX_LOAD: f64 = 0.65;
-
-type HashFn = fn(&str) -> u32;
 
 pub struct MashHap<T> {
     entries: NonNull<Entry<T>>,
