@@ -8,7 +8,7 @@ use std::{
 use crate::hash::HashFn;
 
 // TODO: tweak
-const MAX_LOAD: f64 = 0.65;
+const MAX_LOAD: f64 = 0.75;
 
 pub struct MashHap<T> {
     entries: NonNull<Entry<T>>,

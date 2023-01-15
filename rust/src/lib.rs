@@ -1,4 +1,5 @@
 #![allow(unused)]
+mod chaining;
 pub mod hash;
 mod hec;
 mod mashhap;

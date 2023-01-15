@@ -11,7 +11,7 @@ I don't know what to call these, but the number of times the insertion
 algorithm has to move to the next slot in the array. Or, if I try chaining
 instead of open addressing, the number of duplicates in each bin.
 
-Average overlaps per item
+Average overlaps per item (4000 items)
 
 |SeaHash|FNV-1a|MurmurHash|
 |10.412|11.788|6.2648|
