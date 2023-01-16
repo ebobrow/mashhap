@@ -65,7 +65,7 @@ impl<T> Hec<T> {
 impl<T> Drop for Hec<T> {
     fn drop(&mut self) {
         if self.capacity != 0 {
-            while let Some(_) = self.pop() {}
+            while self.pop().is_some() {}
             let layout = Layout::array::<T>(self.capacity).unwrap();
             unsafe {
                 alloc::dealloc(self.ptr.as_ptr() as *mut u8, layout);

@@ -106,7 +106,7 @@ impl<T> MashHap<T> {
     }
 
     pub fn overlaps(&self) -> usize {
-        self.overlaps.borrow().clone()
+        *self.overlaps.borrow()
     }
 
     fn read(&self, n: usize) -> Option<Entry<T>> {

@@ -1,7 +1,6 @@
 use std::{
     alloc::{self, Layout},
     cell::RefCell,
-    env::current_exe,
     ptr::{self, NonNull},
     rc::Rc,
 };
@@ -79,6 +78,7 @@ where
                 self.write(index, Some(new_entry));
                 return false;
             }
+            self.inc_overlaps();
             if new_entry.next.is_none() {
                 new_entry.next = Some(Box::new(Data {
                     name: key,
@@ -90,6 +90,7 @@ where
             }
             let mut ptr = &mut new_entry;
             while let Some(next) = &mut ptr.next {
+                self.inc_overlaps();
                 if next.name == key {
                     next.value = value;
                     self.write(index, Some(new_entry));
@@ -131,10 +132,11 @@ where
             }
             let mut ptr = entry;
             while let Some(next) = &ptr.next {
+                self.inc_overlaps();
                 if next.name == key {
                     return Some(&next.value);
                 } else {
-                    ptr = &*next;
+                    ptr = next;
                 }
             }
         }
@@ -158,12 +160,13 @@ where
             let mut ptr = entry;
             let mut new_ptr = &mut new_entry;
             while let Some(next) = &ptr.next {
+                self.inc_overlaps();
                 if next.name == key {
                     new_ptr.next = next.next.clone();
                     self.write(index, Some(new_entry));
                     return true;
                 } else {
-                    ptr = &*next;
+                    ptr = next;
                 }
             }
         }
@@ -171,7 +174,7 @@ where
     }
 
     pub fn overlaps(&self) -> usize {
-        self.overlaps.borrow().clone()
+        *self.overlaps.borrow()
     }
 
     fn read(&self, n: usize) -> Entry<T> {
