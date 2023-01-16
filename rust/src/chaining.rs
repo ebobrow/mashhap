@@ -142,33 +142,33 @@ where
     }
 
     /// Deletes entry at `key`. Returns true if entry existed.
-    // pub fn delete(&mut self, key: impl ToString) -> bool {
-    //     if self.capacity == 0 {
-    //         return false;
-    //     }
-    //     let key = key.to_string();
-    //     let index = (self.hash)(&key) as usize % self.capacity;
-    //     if let Some(entry) = &self.slice()[index] {
-    //         // TODO: not clone
-    //         let mut new_entry = entry.clone();
-    //         if new_entry.name == key {
-    //             self.write(index, new_entry.next.map(|n| *n));
-    //             return true;
-    //         }
-    //         let mut ptr = &mut new_entry;
-    //         while let Some(next) = &mut ptr.next {
-    //             if next.name == key {
-    //                 // ptr.next = next.next.as_ref().map(|n| n.next.clone()).flatten();
-    //                 ptr.next = next.next.clone();
-    //                 self.write(index, Some(new_entry));
-    //                 return true;
-    //             } else {
-    //                 ptr = next;
-    //             }
-    //         }
-    //     }
-    //     false
-    // }
+    pub fn delete(&mut self, key: impl ToString) -> bool {
+        if self.capacity == 0 {
+            return false;
+        }
+        let key = key.to_string();
+        let index = (self.hash)(&key) as usize % self.capacity;
+        if let Some(entry) = &self.slice()[index] {
+            // TODO: not clone
+            let mut new_entry = entry.clone();
+            if new_entry.name == key {
+                self.write(index, new_entry.next.map(|n| *n));
+                return true;
+            }
+            let mut ptr = entry;
+            let mut new_ptr = &mut new_entry;
+            while let Some(next) = &ptr.next {
+                if next.name == key {
+                    new_ptr.next = next.next.clone();
+                    self.write(index, Some(new_entry));
+                    return true;
+                } else {
+                    ptr = &*next;
+                }
+            }
+        }
+        false
+    }
 
     pub fn overlaps(&self) -> usize {
         self.overlaps.borrow().clone()
@@ -278,8 +278,8 @@ mod tests {
         assert_eq!(map.set("A", 11), false);
         assert_eq!(map.get("A"), Some(&11));
         assert_eq!(map.get("B"), Some(&24));
-        // assert_eq!(map.delete("A"), true);
-        // assert_eq!(map.delete("A"), false);
+        assert_eq!(map.delete("A"), true);
+        assert_eq!(map.delete("A"), false);
     }
 
     // #[test]
