@@ -4,6 +4,7 @@ use criterion::{
     Criterion,
 };
 use mashhap::{
+    chaining,
     hash::{fnv_1a, murmurhash3, seahash},
     MashHap,
 };
@@ -56,7 +57,7 @@ impl ValueFormatter for OverlapFormatter {
 fn bench_fn(c: &mut Criterion<Overlaps>) {
     let words: Vec<_> = include_str!("../randomwords.txt").split(' ').collect();
 
-    c.bench_function("overlaps FNV-1a", |b| {
+    c.bench_function("overlaps FNV-1a open addressing", |b| {
         b.iter_custom(|iters| {
             let mut overlaps = 0;
             for _ in 0..iters {
@@ -70,7 +71,7 @@ fn bench_fn(c: &mut Criterion<Overlaps>) {
         })
     });
 
-    c.bench_function("overlaps SeaHash", |b| {
+    c.bench_function("overlaps SeaHash open addressing", |b| {
         b.iter_custom(|iters| {
             let mut overlaps = 0;
             for _ in 0..iters {
@@ -84,11 +85,53 @@ fn bench_fn(c: &mut Criterion<Overlaps>) {
         })
     });
 
-    c.bench_function("overlaps MurmurHash 3", |b| {
+    c.bench_function("overlaps MurmurHash 3 open addressing", |b| {
         b.iter_custom(|iters| {
             let mut overlaps = 0;
             for _ in 0..iters {
                 let mut map = MashHap::new(murmurhash3);
+                for word in &words {
+                    map.set(word, 5);
+                }
+                overlaps += map.overlaps();
+            }
+            overlaps / words.len()
+        })
+    });
+
+    c.bench_function("overlaps FNV-1a chaining", |b| {
+        b.iter_custom(|iters| {
+            let mut overlaps = 0;
+            for _ in 0..iters {
+                let mut map = chaining::MashHap::new(fnv_1a);
+                for word in &words {
+                    map.set(word, 5);
+                }
+                overlaps += map.overlaps();
+            }
+            overlaps / words.len()
+        })
+    });
+
+    c.bench_function("overlaps SeaHash chaining", |b| {
+        b.iter_custom(|iters| {
+            let mut overlaps = 0;
+            for _ in 0..iters {
+                let mut map = chaining::MashHap::new(seahash);
+                for word in &words {
+                    map.set(word, 5);
+                }
+                overlaps += map.overlaps();
+            }
+            overlaps / words.len()
+        })
+    });
+
+    c.bench_function("overlaps MurmurHash 3 chaining", |b| {
+        b.iter_custom(|iters| {
+            let mut overlaps = 0;
+            for _ in 0..iters {
+                let mut map = chaining::MashHap::new(murmurhash3);
                 for word in &words {
                     map.set(word, 5);
                 }

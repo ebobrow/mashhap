@@ -236,6 +236,18 @@ mod tests {
     }
 
     #[test]
+    fn count() {
+        let mut map = MashHap::new(fnv_1a);
+        assert_eq!(map.count, 0);
+        map.set("A", 0);
+        assert_eq!(map.count, 1);
+        map.set("A", 1);
+        assert_eq!(map.count, 1);
+        map.set("B", 2);
+        assert_eq!(map.count, 2);
+    }
+
+    #[test]
     fn resizing() {
         let mut map = MashHap::new(fnv_1a);
         assert_eq!(map.capacity, 0);

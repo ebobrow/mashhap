@@ -117,6 +117,7 @@ where
                 next: None,
             }),
         );
+        self.count += 1;
         true
     }
 
@@ -154,6 +155,9 @@ where
             // TODO: not clone
             let mut new_entry = entry.clone();
             if new_entry.name == key {
+                if new_entry.next.is_none() {
+                    self.count -= 1;
+                }
                 self.write(index, new_entry.next.map(|n| *n));
                 return true;
             }
@@ -240,7 +244,7 @@ where
             unsafe { ptr::write(new_entries.as_ptr().add(i), None) };
         }
 
-        self.count = items_to_transfer.len();
+        self.count = 0;
         self.entries = new_entries;
         self.capacity = new_cap;
         for (k, v) in items_to_transfer {
@@ -285,23 +289,39 @@ mod tests {
         assert_eq!(map.delete("A"), false);
     }
 
-    // #[test]
-    // fn resizing() {
-    //     let mut map = MashHap::with_capacity(2, fnv_1a);
-    //     assert_eq!(map.capacity, 2);
-    //     map.set("A", 1);
-    //     assert_eq!(map.capacity, 1);
-    //     map.set("B", 1);
-    //     assert_eq!(map.capacity, 1);
-    //     map.set("C", 1);
-    //     assert_eq!(map.capacity, 4);
-    //     map.set("D", 1);
-    //     assert_eq!(map.capacity, 8);
-    //     map.set("E", 1);
-    //     assert_eq!(map.capacity, 8);
-    //     map.set("F", 1);
-    //     assert_eq!(map.capacity, 8);
-    //     map.set("G", 1);
-    //     assert_eq!(map.capacity, 16);
-    // }
+    #[test]
+    fn count() {
+        let mut map = MashHap::new(fnv_1a);
+        assert_eq!(map.count, 0);
+        map.set("A", 0);
+        assert_eq!(map.count, 1);
+        map.set("A", 1);
+        assert_eq!(map.count, 1);
+        map.set("B", 2);
+        assert_eq!(map.count, 2);
+    }
+
+    #[test]
+    fn resizing() {
+        let mut map = MashHap::with_capacity(2, fnv_1a);
+        assert_eq!(map.capacity, 2);
+        map.set("A", 1);
+        assert_eq!(map.capacity, 2);
+        map.set("B", 1);
+        assert_eq!(map.capacity, 2);
+        map.set("C", 1);
+        assert_eq!(map.capacity, 4);
+        map.set("D", 1);
+        assert_eq!(map.capacity, 4);
+        map.set("E", 1);
+        assert_eq!(map.capacity, 8);
+        map.set("F", 1);
+        assert_eq!(map.capacity, 8);
+        map.set("G", 1);
+        assert_eq!(map.capacity, 8);
+        map.set("H", 1);
+        assert_eq!(map.capacity, 8);
+        map.set("I", 1);
+        assert_eq!(map.capacity, 16);
+    }
 }
