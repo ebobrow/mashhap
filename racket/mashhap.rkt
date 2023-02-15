@@ -6,6 +6,8 @@
          mashhap-count
          mashhap-delete)
 
+(define MAX_LOAD 0.75)
+
 (struct mashhap (entries count))
 
 ; empty list = null
@@ -15,12 +17,22 @@
 (define (mashhap-new n)
   (mashhap (make-list n '()) 0))
 
-; TODO: resize!!!
 (define (mashhap-set map k v)
-  (let* ([loc (location-of map k)]
-         [count-inc (if (loc-exists? map loc) 0 1)])
-    (mashhap (list-set (mashhap-entries map) loc (list k v))
-             (+ count-inc (mashhap-count map)))))
+  (if ((add1 (mashhap-count map)) . > . (* (length (mashhap-entries map)) MAX_LOAD))
+      (mashhap-set (resize map) k v)
+      (let* ([loc (location-of map k)]
+             [count-inc (if (loc-exists? map loc) 0 1)])
+        (mashhap (list-set (mashhap-entries map) loc (list k v))
+                 (+ count-inc (mashhap-count map))))))
+
+(define (resize map)
+  (let* ([cap (length (mashhap-entries map))]
+         [new-cap (if (= cap 0) 1 (* 2 cap))])
+    (for/fold ([new-map (mashhap (make-list new-cap '()) 0)])
+              ([entry (in-list (mashhap-entries map))])
+      (if (= 2 (length entry))
+          (mashhap-set new-map (first entry) (second entry))
+          new-map))))
 
 (define (mashhap-get map k)
   (let ([el (list-ref (mashhap-entries map) (location-of map k))])
@@ -33,24 +45,6 @@
     (if (loc-exists? map loc)
         (struct-copy mashhap map [entries (list-set (mashhap-entries map) loc '(0))])
         map)))
-
-#| (define (location-of map k) |#
-#|   (define search-space |#
-#|     (call-with-values |#
-#|      (lambda () (split-at (mashhap-entries map) (modulo (hash k) (length (mashhap-entries map))))) |#
-#|      (lambda (a b) (append b a)))) |#
-#|   (for/last ([el search-space] |#
-#|              #:break ((length el) . < . 2) |#
-#|              #:final (= (car el) k) |#
-#|              [i (in-naturals 0)]) |#
-#|     (i))) |#
-
-#| (define (location-of map k) |#
-#|   (define len (length (mashhap-entries map))) |#
-#|   (define start (modulo (hash k) len)) |#
-#|   (for/last ([i (in-range start (+ start len))] |#
-#|         #:final (or ((length el) . < . 2) (= (car el) k))) |#
-#|     (i))) |#
 
 (define (loc-exists? map i)
   (= 2 (length (list-ref (mashhap-entries map) i))))
