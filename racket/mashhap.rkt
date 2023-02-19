@@ -1,7 +1,7 @@
 #lang racket
 
 (provide mashhap-new
-         mashhap-set
+         mashhap-set set!-map
          mashhap-get
          mashhap-count
          mashhap-delete)
@@ -16,6 +16,9 @@
 
 (define (mashhap-new n)
   (mashhap (make-list n '()) 0))
+
+(define-syntax-rule (set!-map map k v)
+  (set! map (mashhap-set map k v)))
 
 (define (mashhap-set map k v)
   (if ((add1 (mashhap-count map)) . > . (* (length (mashhap-entries map)) MAX_LOAD))

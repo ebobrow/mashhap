@@ -10,9 +10,6 @@
    (list (range 10 1000 10))
    (lambda (_bench len)
      (define map (mashhap-new 5))
-     ; TODO: this could be a macro in the main file couldn't it
-     (define (set!-map map k v)
-       (set! map (mashhap-set map k v)))
      (for [(i (in-range len))]
        (set!-map map (make-string i) i)))
    #:extract-time 'delta-time))
